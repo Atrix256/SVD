@@ -31,14 +31,15 @@ int main(int argc, char** argv)
 
 		MatrixXcd U = C * V;
 		for (int i = 0; i < U.cols(); ++i)
-			U.col(i) = U.col(i).normalized();
+			U.col(i).normalize();
+
+		cout << "C = \n" << C << "\n\n";
 
 		cout << "U = \n" << U.real() << "\n\n";
 		cout << "sigma = \n" << sigma.real() << "\n\n";
 		cout << "V = \n" << V.real() << "\n\n";
 
 		cout << "U * sigma * VT = \n" << (U * sigma * V.transpose()).real() << "\n\n";
-		cout << "C = \n" << C << "\n\n";
 	}
 
 	/*
