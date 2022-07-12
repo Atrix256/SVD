@@ -1,4 +1,5 @@
 #include "Eigen/Eigenvalues"
+#include "Eigen/SVD"
 
 #include <iostream>
 
@@ -42,33 +43,54 @@ int main(int argc, char** argv)
 		cout << "U * sigma * VT = \n" << (U * sigma * V.transpose()).real() << "\n\n";
 	}
 
-	/*
-	MatrixXd A = MatrixXd::Random(2, 2);
-	cout << "Here is a random 2x2 matrix, A:" << endl << A << endl << endl;
+	// Calculate SVD using the built in functionality
+	{
+		BDCSVD<Matrix2d> svd(C, ComputeFullU | ComputeFullV);
 
-	EigenSolver<MatrixXd> es(A);
-	cout << "The eigenvalues of A are:" << endl << es.eigenvalues() << endl;
-	cout << "The matrix of eigenvectors, V, is:" << endl << es.eigenvectors() << endl << endl;
+		auto U = svd.matrixU();
+		auto V = svd.matrixV();
+		auto sigma = svd.singularValues().asDiagonal().toDenseMatrix();
 
-	complex<double> lambda = es.eigenvalues()[0];
-	cout << "Consider the first eigenvalue, lambda = " << lambda << endl;
-	VectorXcd v = es.eigenvectors().col(0);
-	cout << "If v is the corresponding eigenvector, then lambda * v = " << endl << lambda * v << endl;
-	cout << "... and A * v = " << endl << A.cast<complex<double> >() * v << endl << endl;
+		cout << "C = \n" << C << "\n\n";
 
-	MatrixXcd D = es.eigenvalues().asDiagonal();
-	MatrixXcd V = es.eigenvectors();
-	cout << "Finally, V * D * V^(-1) = " << endl << V * D * V.inverse() << endl;
-	*/
+		cout << "U = \n" << U << "\n\n";
+		cout << "sigma = \n" << sigma << "\n\n";
+		cout << "V = \n" << V << "\n\n";
+
+		cout << "U * sigma * VT = \n" << U * sigma * V.transpose() << "\n\n";
+	}
+
+	// PCA!
+	{
+		Matrix3d newC;
+		newC <<
+			0.002300, 0.043200, 0.002300,
+			0.043200, 0.818000, 0.043200,
+			0.002300, 0.043200, 0.002300;
+
+		BDCSVD<Matrix3d> svd(newC, ComputeFullU | ComputeFullV);
+
+		auto U = svd.matrixU();
+		auto V = svd.matrixV();
+		auto sigma = svd.singularValues().asDiagonal().toDenseMatrix();
+
+		cout << "sigma = \n" << sigma << "\n\n";
+
+		cout << "C * V = \n" << newC * V << "\n\n";
+
+		cout << "Principle Direction = \n" << (newC * V).col(0).normalized() << "\n\n";
+	}
 
 	return 0;
 }
 
 /*
 
-TODO:
-- calculate SVD the way the video explains it
-- then do it by the single function call!
-- then do PCA too.
+TODO: make demos for blog post? i think you are basically done
+
+NOTE:
+* there are 2 ways to do SVD in Eigen. One is better for smaller matrices, the other for bigger ones. https://eigen.tuxfamily.org/dox/group__SVD__Module.html
+* I had to add /bigobj in msvc oddly!
+* Takes quite a long while to compile even this simple program!
 
 */
