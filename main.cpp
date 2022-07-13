@@ -16,6 +16,30 @@
 using namespace Eigen;
 using namespace std;
 
+void SaveMatrixResult(const std::vector<double>& mtxpixels, int width, int height, int components, int percent)
+{
+	// rearrange the pixels and convert from double to unsigned char
+	std::vector<unsigned char> pixels(width * height * components);
+
+	const double* srcPixel = mtxpixels.data();
+	for (size_t iy = 0; iy < height; ++iy)
+	{
+		for (size_t ic = 0; ic < components; ++ic)
+		{
+			for (size_t ix = 0; ix < width; ++ix)
+			{
+				pixels[(iy * width * components) + ix * components + ic] = (unsigned char)std::max(std::min(*srcPixel * 255.0, 255.0), 0.0);
+				srcPixel++;
+			}
+		}
+	}
+
+	// write it out
+	char fileName[1024];
+	sprintf_s(fileName, "out/%i.png", percent);
+	stbi_write_png(fileName, width, height, components, pixels.data(), 0);
+}
+
 int main(int argc, char** argv)
 {
 	_mkdir("out");
@@ -115,7 +139,7 @@ int main(int argc, char** argv)
 			{
 				for (size_t ic = 0; ic < components; ++ic)
 				{
-					mtxpixels[(iy * components + ic) * width + ix] = float(*srcPixel) / 255.0;
+					mtxpixels[(iy * components + ic) * width + ix] = double(*srcPixel) / 255.0;
 					srcPixel++;
 				}
 			}
@@ -141,6 +165,10 @@ int main(int argc, char** argv)
 			75,
 			50,
 			25,
+			20,
+			15,
+			10,
+			5,
 			0
 		};
 
@@ -155,7 +183,8 @@ int main(int argc, char** argv)
 			// reconstruct the image
 			mf = U * sigma * V.transpose();
 
-			int ijkl = 0;
+			// save it out
+			SaveMatrixResult(mtxpixels, width, height, components, percents[imageIndex]);
 		}
 	}
 
