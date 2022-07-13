@@ -74,6 +74,10 @@ int main(int argc, char** argv)
 		auto V = svd.matrixV();
 		auto sigma = svd.singularValues().asDiagonal().toDenseMatrix();
 
+		cout << "C = \n" << C << "\n\n";
+
+		cout << "V = \n" << V << "\n\n";
+
 		cout << "sigma = \n" << sigma << "\n\n";
 
 		cout << "C * V = \n" << newC * V << "\n\n";
@@ -83,14 +87,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
-/*
-
-TODO: make demos for blog post? i think you are basically done
-
-NOTE:
-* there are 2 ways to do SVD in Eigen. One is better for smaller matrices, the other for bigger ones. https://eigen.tuxfamily.org/dox/group__SVD__Module.html
-* I had to add /bigobj in msvc oddly!
-* Takes quite a long while to compile even this simple program!
-
-*/
