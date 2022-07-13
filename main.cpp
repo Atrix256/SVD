@@ -11,12 +11,15 @@
 
 #include <vector>
 #include <iostream>
+#include <direct.h>
 
 using namespace Eigen;
 using namespace std;
 
 int main(int argc, char** argv)
 {
+	_mkdir("out");
+
 	Matrix2d C;
 	C <<
 		5.0f, 5.0f,
@@ -123,11 +126,15 @@ int main(int argc, char** argv)
 		Map<MatrixXd> mf(mtxpixels.data(), height * components, width);
 
 		// Singular value decomposition
-		BDCSVD<MatrixXd> svd(mf, ComputeThinU | ComputeThinV);
+		BDCSVD<MatrixXd> svd(mf, ComputeFullU | ComputeFullV);
 		auto U = svd.matrixU();
 		auto V = svd.matrixV();
-		auto sigma = svd.singularValues().asDiagonal().toDenseMatrix();
+		auto singularValues = svd.singularValues();
+		MatrixXd sigma = MatrixXd::Zero(U.cols(), singularValues.size());
+		for (int svIndex = 0; svIndex < singularValues.size(); ++svIndex)
+			sigma(svIndex, svIndex) = singularValues(svIndex);
 
+		// Truncate the SVD to various percentages
 		int percents[] =
 		{
 			100,
@@ -139,16 +146,15 @@ int main(int argc, char** argv)
 
 		for (int imageIndex = 0; imageIndex < _countof(percents); ++imageIndex)
 		{
-			cout << "mf is " << mf.rows() << " x " << mf.cols() << "\n";
-			cout << "U is " << U.rows() << " x " << U.cols() << "\n";
-			cout << "sigma is " << sigma.rows() << " x " << sigma.cols() << "\n";
-			cout << "V is " << V.rows() << " x " << V.cols() << "\n";
+			// truncate
+			int cutoffIndex = (int)sigma.cols() * percents[imageIndex] / 100;
+			cutoffIndex = std::max(cutoffIndex, 1);
+			for (int svIndex = cutoffIndex; svIndex < sigma.cols(); ++svIndex)
+				sigma(svIndex, svIndex) = 0.0;
 
-			// TODO: how to truncate?
+			// reconstruct the image
+			mf = U * sigma * V.transpose();
 
-			auto result = U * sigma * V.transpose();
-			cout << "result is " << result.rows() << " x " << result.cols() << "\n";
-			//cout << "sigma = \n" << sigma << "\n\n";
 			int ijkl = 0;
 		}
 	}
