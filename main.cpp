@@ -16,7 +16,7 @@
 using namespace Eigen;
 using namespace std;
 
-void SaveMatrixResult(const std::vector<double>& mtxpixels, int width, int height, int components, int percent)
+void SaveMatrixResult(const char* fnprefix, const std::vector<double>& mtxpixels, int width, int height, int components, int percent)
 {
 	// rearrange the pixels and convert from double to unsigned char
 	std::vector<unsigned char> pixels(width * height * components);
@@ -36,7 +36,7 @@ void SaveMatrixResult(const std::vector<double>& mtxpixels, int width, int heigh
 
 	// write it out
 	char fileName[1024];
-	sprintf_s(fileName, "out/%i.png", percent);
+	sprintf_s(fileName, "out/%s%i.png", fnprefix, percent);
 	stbi_write_png(fileName, width, height, components, pixels.data(), 0);
 }
 
@@ -125,9 +125,8 @@ int main(int argc, char** argv)
 	{
 		// load the image
 		int width, height, components;
-		// TODO: try with larger image!
-		//unsigned char* pixels = stbi_load("scenery.png", &width, &height, &components, 3);
-		unsigned char* pixels = stbi_load("lozman.png", &width, &height, &components, 3);
+		unsigned char* pixels = stbi_load("scenery.png", &width, &height, &components, 3);
+		//unsigned char* pixels = stbi_load("lozman.png", &width, &height, &components, 3);
 		components = 3;
 
 		// convert it to double, and also give each component it's own row
@@ -184,7 +183,7 @@ int main(int argc, char** argv)
 			mf = U * sigma * V.transpose();
 
 			// save it out
-			SaveMatrixResult(mtxpixels, width, height, components, percents[imageIndex]);
+			SaveMatrixResult("scenery", mtxpixels, width, height, components, percents[imageIndex]);
 		}
 	}
 
